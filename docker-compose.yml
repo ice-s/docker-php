@@ -1,0 +1,47 @@
+version: "2"
+services:
+
+  nginx-test:
+    image: nginx
+    restart: always
+    volumes:
+      - ./nginx/app.conf:/etc/nginx/conf.d/default.conf
+      - ./source:/var/www/html
+    ports:
+      - "9980:80"
+    links:
+      - php-test:php-test
+
+  php-test:
+    build: ./php
+    restart: always
+    expose:
+      - "9000"
+    links:
+      - mysql-test
+      - redis-test
+    volumes:
+      - ./source:/var/www/html
+      - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
+
+  mysql-test:
+    image: mysql:5.6
+    restart: always
+#expose port to localhost
+#    ports:
+#      - "13306:3306"
+    volumes:
+      - ./data/mysql-5.6:/var/lib/mysql
+      - ./mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+
+  redis-test:
+    image: redis
+    restart: always
+#expose port to localhost
+#    ports:
+#      - "16379:6379"
+    volumes:
+      - ./data/redis:/data
+    command: redis-server --appendonly yes
